@@ -189,3 +189,52 @@ host Eden {
 }
 ```
 
+# Soal 8
+Melakukan block http ketika internet tersambung
+
+## Solusi
+Pada Berlint, install `Squid`:
+```
+apt-get install squid -y
+```
+
+lalu backup file `squid.conf`:
+```
+mv /etc/squid/squid.conf /etc/squid/squid.conf.bak
+```
+
+lalu masukkan ke file `squid.conf`:
+```
+acl block_port port 8080
+acl allow_port port 443
+acl JAM_KERJA time MTWHF 08:00-17:00
+acl SELESAI_KERJA time MTWHF 17:00-23:59
+acl SEBELUM_KERJA time MTWHF 00:00-08:00
+acl ssl_port proto HTTPS
+acl CONNECT method CONNECT
+
+http_port 8080
+visible_hostname Berlint
+dns_nameservers 10.42.2.2
+
+http_access deny ssl_port
+http_access deny all
+```
+
+setelah itu, lakukan jalankan squid:
+```
+service squid start
+```
+
+Pada Proxy user(SSS, Garden, dan Eden), gunakan perintah:
+```
+export http_proxy="http://10.42.2.3:8080"
+```
+
+lalu coba ```lynx http://goole.com```
+hasilnya akan di block
+
+# Kenadala
+1. Tidak ada penjelasan DHCP relay.
+2. Proxy tidak bisa dilakukan bersamaan antara waktu dan acl lainnya.
+
